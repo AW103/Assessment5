@@ -1,7 +1,7 @@
 require('dotenv').config();
 const Sequelize = require('sequelize');
-
-const {CONNECTION_STRING} = process.env;
+// process.env wasn't actually connecting to my database
+const CONNECTION_STRING = 'postgres://yehvguhymwtxkl:2308270296d0b2e55c9d4b12436892d72e30e49666a01671965d190afaa67bca@ec2-3-224-125-117.compute-1.amazonaws.com:5432/d8346iuape57b9';
 
 const sequelize = new Sequelize(CONNECTION_STRING, {
     dialect: 'postgres',
@@ -14,6 +14,15 @@ const sequelize = new Sequelize(CONNECTION_STRING, {
 })
 
 module.exports = {
+    deleteCity: (req,res) => {
+        let {id} = req.params;
+        console.log(JSON.stringify(id));
+        sequelize.query(`
+        delete
+        from cities
+        where city_id = ${id}    
+        `)
+    },
     getCountries: (req, res) => {
         sequelize.query(`
         SELECT * 
@@ -24,24 +33,22 @@ module.exports = {
     createCity: (req, res) => {
         let {name, rating, countryId} = req.body;
         sequelize.query(`
-        insert into cities name, rating, country_id
-        values (${name}), 
-        (${rating}), 
-        (${countryId});`)
+        insert into cities (name, rating, country_id)
+        values ('${name}',${rating},${countryId});`)
         .then(dbRes => res.status(200).send(dbRes[0]))
         .catch(err => console.log(err));
     },
     getCities: (req,res) => {
-        // select cit.city_id, cit.name as city, cit.rating, coun.country_id, coun.name as country
-        // from cities as cit
-        // join countries as coun
-        // on cit.country_id = coun.country_id
-        // where cit.country_id = coun.country_id;
         sequelize.query(`
-        select *
-        from cities
+        select cit.city_id, cit.name as city, cit.rating, coun.country_id, coun.name as country
+        from cities as cit
+        join countries as coun
+        on cit.country_id = coun.country_id
+        where cit.country_id = coun.country_id;
         `)
-        .then(dbRes => res.status(200).send(dbRes[0]))
+        .then(dbRes => { 
+            res.status(200).send(dbRes[0])
+        })
         .catch(err => console.log(err));
     },
     seed: (req, res) => {
@@ -51,12 +58,12 @@ module.exports = {
 
             create table countries (
                 country_id serial primary key, 
-                name varchar
+                name varchar(90)
             );
 
             create table cities (
                 city_id serial primary key,
-                name varchar,
+                name varchar(90),
                 rating integer,
                 country_id integer references countries(country_id)
             );

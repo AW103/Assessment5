@@ -12,6 +12,7 @@ function handleSubmit(e) {
     }
 
     let userRating = document.querySelector('input[name="rating"]:checked').value
+    console.log(`userRating is ${userRating}`);
     let body = {
         name: nameInput.value, 
         rating: +userRating, 
