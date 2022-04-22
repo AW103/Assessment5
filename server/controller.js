@@ -22,6 +22,8 @@ module.exports = {
         from cities
         where city_id = ${id}    
         `)
+        .then(dbRes => res.status(200).send(dbRes[0]))
+        .catch(err => console.log(err));
     },
     getCountries: (req, res) => {
         sequelize.query(`
